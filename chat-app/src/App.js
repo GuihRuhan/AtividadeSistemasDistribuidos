@@ -1,9 +1,7 @@
 import { useEffect, useState, useRef } from "react";
 
 function App() {
-  const [socket, setSocket] = useState(null); // ✅ CORRETO
-
-function App() {
+  const [socket, setSocket] = useState(null);
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState("");
   const [username, setUsername] = useState("");
@@ -12,69 +10,68 @@ function App() {
   const chatEndRef = useRef(null);
 
   useEffect(() => {
-  if (!socket) return;
+    if (!socket) return;
 
-  socket.onmessage = (event) => {
-    const data = JSON.parse(event.data);
+    socket.onmessage = (event) => {
+      const data = JSON.parse(event.data);
 
-    if (data.type === "message") {
-      setMessages((prev) => [
-        ...prev,
-        {
-          text: data.message,
-          sender: data.from === username ? "me" : "other",
-          from: data.from,
-          time: data.time
-        }
-      ]);
-    }
+      if (data.type === "message") {
+        setMessages((prev) => [
+          ...prev,
+          {
+            text: data.message,
+            sender: data.from === username ? "me" : "other",
+            from: data.from,
+            time: data.time
+          }
+        ]);
+      }
 
-    if (data.type === "users") {
-      setUsers(data.users);
-    }
-  };
-}, [username]);
+      if (data.type === "users") {
+        setUsers(data.users);
+      }
+    };
+  }, [socket, username]);
 
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
   const connectUser = () => {
-  const ws = new WebSocket("ws://localhost:5050");
+    const ws = new WebSocket("ws://localhost:5050");
 
-  ws.onopen = () => {
-    ws.send(JSON.stringify({ username }));
-    setConnected(true);
+    ws.onopen = () => {
+      ws.send(JSON.stringify({ username }));
+      setConnected(true);
+    };
+
+    setSocket(ws);
   };
-
-  setSocket(ws);
-};
 
   const sendMessage = () => {
-  if (!input.trim()) return;
+    if (!input.trim()) return;
 
-  const msg = {
-    type: "message",
-    id: Date.now().toString(),
-    message: input,
-    time: new Date().toLocaleTimeString()
+    const msg = {
+      type: "message",
+      id: Date.now().toString(),
+      message: input,
+      time: new Date().toLocaleTimeString()
+    };
+
+    socket.send(JSON.stringify(msg));
+
+    setMessages((prev) => [
+      ...prev,
+      {
+        text: input,
+        sender: "me",
+        from: username,
+        time: msg.time
+      }
+    ]);
+
+    setInput("");
   };
-
-  socket.send(JSON.stringify(msg));
-
-  // 🔥 ADICIONAR NA TELA (ESSENCIAL)
-  setMessages((prev) => [
-    ...prev,
-    {
-      text: input,
-      sender: "me",
-      from: username,
-      time: msg.time
-    }
-  ]);
-
-  setInput("");
-};
 
   if (!connected) {
     return (
@@ -92,7 +89,6 @@ function App() {
 
   return (
     <div style={styles.container}>
-      {/* SIDEBAR */}
       <div style={styles.sidebar}>
         <h3>Usuários</h3>
         {users.map((u, i) => (
@@ -102,7 +98,6 @@ function App() {
         ))}
       </div>
 
-      {/* CHAT */}
       <div style={styles.chatBox}>
         <div style={styles.header}>💬 Chat</div>
 
@@ -146,66 +141,19 @@ function App() {
 
 const styles = {
   container: { display: "flex", height: "100vh" },
-
-  sidebar: {
-    width: 200,
-    background: "#075E54",
-    color: "white",
-    padding: 10
-  },
-
+  sidebar: { width: 200, background: "#075E54", color: "white", padding: 10 },
   user: { padding: 5 },
-
-  chatBox: {
-    flex: 1,
-    display: "flex",
-    flexDirection: "column"
-  },
-
-  header: {
-    padding: 15,
-    background: "#128C7E",
-    color: "white"
-  },
-
-  messages: {
-    flex: 1,
-    padding: 10,
-    overflowY: "auto",
-    background: "#ECE5DD"
-  },
-
+  chatBox: { flex: 1, display: "flex", flexDirection: "column" },
+  header: { padding: 15, background: "#128C7E", color: "white" },
+  messages: { flex: 1, padding: 10, overflowY: "auto", background: "#ECE5DD" },
   messageRow: { display: "flex", marginBottom: 10 },
-
-  bubble: {
-    background: "#FFF",
-    padding: 10,
-    borderRadius: 10,
-    maxWidth: "60%"
-  },
-
+  bubble: { background: "#FFF", padding: 10, borderRadius: 10, maxWidth: "60%" },
   name: { fontWeight: "bold", fontSize: 12 },
-
   time: { fontSize: 10, color: "gray", textAlign: "right" },
-
   inputArea: { display: "flex", padding: 10 },
-
   input: { flex: 1, padding: 10 },
-
-  button: {
-    marginLeft: 10,
-    background: "#25D366",
-    color: "white",
-    border: "none",
-    padding: "0 15px"
-  },
-
-  login: {
-    display: "flex",
-    flexDirection: "column",
-    alignItems: "center",
-    marginTop: 100
-  }
+  button: { marginLeft: 10, background: "#25D366", color: "white", border: "none", padding: "0 15px" },
+  login: { display: "flex", flexDirection: "column", alignItems: "center", marginTop: 100 }
 };
-}
+
 export default App;

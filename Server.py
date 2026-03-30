@@ -62,7 +62,7 @@ async def handler(websocket):
 
 async def main():
     async with websockets.serve(handler, "localhost", 5050):
-        print("Servidor rodando em wss://SEU-SERVIDOR.onrender.com")
+        print("Servidor rodando em ws://localhost:5050")
         await asyncio.Future()
 
 asyncio.run(main())
